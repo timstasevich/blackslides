@@ -92,12 +92,12 @@ LibreOffice is **not** needed. It's only used by the optional `--rasterize-metaf
 ## Everyday use
 
 ```
-py -m blackslides talk.pptx                    # every slide -> talk_black.pptx
-py -m blackslides talk.pptx --slides 4,7-9     # only these slides; the rest stay untouched
-py -m blackslides fig2.png fig3.jpg fig4.emf   # just the images -> fig2_black.png, ...
+blackslides talk.pptx                    # every slide -> talk_black.pptx
+blackslides talk.pptx --slides 4,7-9     # only these slides; the rest stay untouched
+blackslides fig2.png fig3.jpg fig4.emf   # just the images -> fig2_black.png, ...
 ```
 
-On Mac or Linux, use `python3 -m blackslides` in place of `py -m blackslides`. The short form `blackslides talk.pptx` also works if Python's Scripts folder is on your PATH.
+These assume the environment is active, as in step 3 above. Otherwise, use the full path to `blackslides.exe`. On Mac or Linux, `python3 -m blackslides` works too.
 
 Your original file is never modified. A new `_black` copy is written next to it, or use `-o newname.pptx` to choose the name.
 

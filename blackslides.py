@@ -197,6 +197,22 @@ def _luma(rgb):
     return 0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2]
 
 
+def _trim_bright_edges(lum, y0, y1, x0, x1):
+    """Shrink a box while its outermost row/column is mostly bright (a white frame or margin)."""
+    changed = True
+    while changed and y1 - y0 > 2 and x1 - x0 > 2:
+        changed = False
+        if np.median(lum[y0, x0:x1]) > 0.5:
+            y0 += 1; changed = True
+        if np.median(lum[y1 - 1, x0:x1]) > 0.5:
+            y1 -= 1; changed = True
+        if np.median(lum[y0:y1, x0]) > 0.5:
+            x0 += 1; changed = True
+        if np.median(lum[y0:y1, x1 - 1]) > 0.5:
+            x1 -= 1; changed = True
+    return y0, y1, x0, x1
+
+
 def find_dark_panels(rgb):
     """Boolean mask of rectangular dark-background panels (micrographs, photos)
     that should NOT be inverted. Solid black shapes are not counted."""
@@ -225,6 +241,7 @@ def find_dark_panels(rgb):
         n_colours = len(np.unique(flat[:: max(1, len(flat) // 200000)], axis=0))
         # real images have texture/noise; solid black bars do not
         if rl.std() > 0.02 and n_colours > 64:
+            y0, y1, x0, x1 = _trim_bright_edges(lum, y0, y1, x0, x1)
             keep[y0:y1, x0:x1] = True
     return keep
 
@@ -250,9 +267,17 @@ def transform_pil(img, s, force=False):
     arr = np.asarray(img)
     rgb = arr[..., :3].astype(np.float32) / 255
     alpha = arr[..., 3].astype(np.float32) / 255 if has_alpha else None
+    keep = None
     if not force and s.protect_photos and is_dark_image(rgb, alpha):
-        return None, "dark-skipped"
-    keep = find_dark_panels(rgb) if (s.protect_photos and not force) else None
+        # dark photo: leave it alone, apart from any white frame drawn around it
+        h, w = rgb.shape[:2]
+        y0, y1, x0, x1 = _trim_bright_edges(_luma(rgb), 0, h, 0, w)
+        if (y0, y1, x0, x1) == (0, h, 0, w):
+            return None, "dark-skipped"
+        keep = np.zeros((h, w), bool)
+        keep[y0:y1, x0:x1] = True
+    elif s.protect_photos and not force:
+        keep = find_dark_panels(rgb)
 
     # transform each distinct colour once
     u8 = arr[..., :3].reshape(-1, 3)

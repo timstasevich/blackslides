@@ -113,7 +113,7 @@ Your original file is never modified. A new `_black` copy is written next to it,
 | SVG pictures | Recoloured as vectors. PowerPoint's PNG fallback copy is converted too. |
 | EMF / WMF pictures (pasted from Illustrator, Prism, Excel...) | Recoloured record by record, so they **stay vectors**. Both GDI and EMF+ colours, plus any bitmaps embedded inside them. |
 | Native PowerPoint charts, SmartArt | Text, axes and explicit colours are converted |
-| Micrographs / photos that already have a dark background | Left alone automatically, including a dark image panel inside a white figure |
+| Micrographs / photos that already have a dark background | Left alone automatically. This includes a dark panel inside a white figure and grids of small spot crops. White frames and gaps around them turn black. |
 
 ## Resolution is never reduced
 

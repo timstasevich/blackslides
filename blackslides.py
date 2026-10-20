@@ -214,12 +214,13 @@ def _trim_bright_edges(lum, y0, y1, x0, x1):
 
 
 def find_dark_panels(rgb):
-    """Boolean mask of rectangular dark-background panels (micrographs, photos)
-    that should NOT be inverted. Solid black shapes are not counted."""
+    """Masks (keep, gaps): rectangular dark-background panels (micrographs, photos)
+    that should NOT be inverted, and separator lines between tiles to paint black.
+    Solid black shapes are not counted."""
     h, w = rgb.shape[:2]
     keep = np.zeros((h, w), bool)
-    if ndimage is None or min(h, w) < 40:
-        return keep
+    if ndimage is None or min(h, w) < 16:
+        return keep, keep.copy()
     lum = _luma(rgb)
     k = max(9, int(0.03 * min(h, w)))
     density = ndimage.uniform_filter((lum < 0.3).astype(np.float32), size=k)
@@ -243,7 +244,41 @@ def find_dark_panels(rgb):
         if rl.std() > 0.02 and n_colours > 64:
             y0, y1, x0, x1 = _trim_bright_edges(lum, y0, y1, x0, x1)
             keep[y0:y1, x0:x1] = True
-    return keep
+    tiles, gaps = find_dark_tiles(lum)
+    return keep | tiles, gaps & ~keep
+
+
+def find_dark_tiles(lum, min_side=8):
+    """Small dark image tiles sitting on the white figure background, e.g. a grid of
+    spot crops. Solid black shapes, text and plot frames are not counted."""
+    h, w = lum.shape
+    keep = np.zeros((h, w), bool)
+    gaps = np.zeros((h, w), bool)
+    filled = ndimage.binary_fill_holes(lum < 0.8)   # everything that isn't white background
+    labels, n = ndimage.label(filled)
+    for i, sl in enumerate(ndimage.find_objects(labels), start=1):
+        ys, xs = sl
+        bh, bw = ys.stop - ys.start, xs.stop - xs.start
+        if min(bh, bw) < min_side or bh * bw > 0.9 * h * w:
+            continue
+        comp = labels[sl] == i
+        if comp.mean() < 0.9:                       # must be (nearly) rectangular
+            continue
+        region = lum[sl]
+        if np.median(region[comp]) > 0.45:          # mostly dark (plot frames enclose white)
+            continue
+        e = max(1, min(bh, bw) // 8)
+        inner = region[e:-e, e:-e]
+        if inner.size == 0 or not (inner.std() > 0.015 or inner.max() - np.median(inner) > 0.3):
+            continue                                # flat fill, not an image
+        # white (or blurred grey) separator lines between touching tiles become black gaps
+        thresh = max(0.4, float(np.median(region[comp])) + 0.2)
+        sep = np.zeros_like(comp)
+        sep[np.median(region, axis=1) > thresh, :] = True
+        sep[:, np.median(region, axis=0) > thresh] = True
+        keep[sl] |= comp & ~sep
+        gaps[sl] |= comp & sep
+    return keep, gaps
 
 
 def is_dark_image(rgb, alpha=None):
@@ -267,7 +302,7 @@ def transform_pil(img, s, force=False):
     arr = np.asarray(img)
     rgb = arr[..., :3].astype(np.float32) / 255
     alpha = arr[..., 3].astype(np.float32) / 255 if has_alpha else None
-    keep = None
+    keep = gaps = None
     if not force and s.protect_photos and is_dark_image(rgb, alpha):
         # dark photo: leave it alone, apart from any white frame drawn around it
         h, w = rgb.shape[:2]
@@ -277,7 +312,7 @@ def transform_pil(img, s, force=False):
         keep = np.zeros((h, w), bool)
         keep[y0:y1, x0:x1] = True
     elif s.protect_photos and not force:
-        keep = find_dark_panels(rgb)
+        keep, gaps = find_dark_panels(rgb)
 
     # transform each distinct colour once
     u8 = arr[..., :3].reshape(-1, 3)
@@ -291,6 +326,8 @@ def transform_pil(img, s, force=False):
     new = np.round(out[inv] * 255).astype(np.uint8).reshape(arr.shape[0], arr.shape[1], 3)
     if keep is not None and keep.any():
         new[keep] = arr[..., :3][keep]
+    if gaps is not None and gaps.any():
+        new[gaps] = s.bg
     if has_alpha:
         new = np.dstack([new, arr[..., 3]])
     status = "converted" if keep is None or not keep.any() else "converted (kept %d photo panel(s))" % \

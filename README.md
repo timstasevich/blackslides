@@ -24,29 +24,42 @@ git --version
 
 Restart VS Code after installing either one.
 
-**2. Install blackslides:**
+**2. Make a folder and environment for it, then install:**
 
 ```
-py -m pip install "git+https://github.com/timstasevich/blackslides.git"
+mkdir $HOME\tools\blackslides
+cd $HOME\tools\blackslides
+py -m venv .venv
+.venv\Scripts\python -m pip install "git+https://github.com/timstasevich/blackslides.git"
 ```
 
 If Git asks you to sign in to GitHub, a browser window opens. Approve it.
 
-**3. Convert a deck:**
+**3. Convert a deck.**
+
+In VS Code, open that folder (File, then Open Folder). Press Ctrl+Shift+P, run **Python: Select Interpreter**, and pick `.venv`. New terminals in that folder then have the environment active:
 
 ```
-py -m blackslides "C:\Users\you\Desktop\talk.pptx"
+blackslides "C:\Users\you\Desktop\talk.pptx"
+```
+
+From any other terminal, without activating, call it by its full path:
+
+```
+& "$HOME\tools\blackslides\.venv\Scripts\blackslides.exe" "C:\Users\you\Desktop\talk.pptx"
 ```
 
 This writes `talk_black.pptx` next to the original. To get a file's path, Shift+right-click it in File Explorer, choose **Copy as path**, and paste it into the terminal.
 
 If PowerPoint has `talk_black.pptx` open, close it before re-running, otherwise Windows blocks the save.
 
-**Updating to the latest version:**
+**Updating to the latest version** (from the `tools\blackslides` folder):
 
 ```
-py -m pip install --upgrade --force-reinstall "git+https://github.com/timstasevich/blackslides.git"
+.venv\Scripts\python -m pip install --upgrade --force-reinstall "git+https://github.com/timstasevich/blackslides.git"
 ```
+
+If you already use conda, create the environment with `conda create -n blackslides python` and activate it with `conda activate blackslides`, then run `pip install "git+https://github.com/timstasevich/blackslides.git"`.
 
 ### macOS / Linux
 

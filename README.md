@@ -15,22 +15,22 @@ Open the terminal in VS Code with **Ctrl+`**.
 **1. Check that Python and Git are installed:**
 
 ```
-py --version
+python --version
 git --version
 ```
 
 - If Python is missing, install it from [python.org](https://www.python.org/downloads/) and tick **"Add python.exe to PATH"** in the installer.
 - If Git is missing, install it from [git-scm.com](https://git-scm.com/download/win) with the default options.
 
-Restart VS Code after installing either one.
+Restart VS Code after installing either one. (If you use Anaconda instead, see the conda note below.)
 
 **2. Make a folder and environment for it, then install:**
 
 ```
 mkdir $HOME\tools\blackslides
 cd $HOME\tools\blackslides
-py -m venv .venv
-.venv\Scripts\python -m pip install "git+https://github.com/timstasevich/blackslides.git"
+python -m venv .venv
+.\.venv\Scripts\python -m pip install "git+https://github.com/timstasevich/blackslides.git"
 ```
 
 If Git asks you to sign in to GitHub, a browser window opens. Approve it.
@@ -56,7 +56,7 @@ If PowerPoint has `talk_black.pptx` open, close it before re-running, otherwise 
 **Updating to the latest version** (from the `tools\blackslides` folder):
 
 ```
-.venv\Scripts\python -m pip install --upgrade --force-reinstall "git+https://github.com/timstasevich/blackslides.git"
+.\.venv\Scripts\python -m pip install --upgrade --force-reinstall "git+https://github.com/timstasevich/blackslides.git"
 ```
 
 If you already use conda, create the environment with `conda create -n blackslides python` and activate it with `conda activate blackslides`, then run `pip install "git+https://github.com/timstasevich/blackslides.git"`.

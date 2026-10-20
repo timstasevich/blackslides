@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "blackslides"
+version = "0.1.0"
+description = "Convert PowerPoint slides and figure images for a black background (keeps colours, resolution and vectors)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Tim Stasevich"}]
+dependencies = ["python-pptx>=0.6.21", "pillow>=9", "numpy>=1.21", "scipy>=1.7"]
+
+[project.scripts]
+blackslides = "blackslides:main"
+
+[tool.setuptools]
+py-modules = ["blackslides"]

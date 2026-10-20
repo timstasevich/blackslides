@@ -6,67 +6,85 @@ Converts a PowerPoint deck (or individual figure files) so it reads well on a bl
 
 ## Installation
 
-You need Python 3.9 or newer. On a Mac, the steps below take about two minutes.
+You need Python 3.9 or newer and Git.
 
-**1. Check Python.** Open Terminal (press ⌘-Space and type "Terminal") and run:
+### Windows (for example, in the Visual Studio Code terminal)
+
+Open the terminal in VS Code with **Ctrl+`**.
+
+**1. Check that Python and Git are installed:**
 
 ```
-python3 --version
+py --version
+git --version
 ```
 
-If macOS offers to install the "command line developer tools", click Install. That gives you both Python and git. Then run the command again.
+- If Python is missing, install it from [python.org](https://www.python.org/downloads/) and tick **"Add python.exe to PATH"** in the installer.
+- If Git is missing, install it from [git-scm.com](https://git-scm.com/download/win) with the default options.
+
+Restart VS Code after installing either one.
 
 **2. Install blackslides:**
 
 ```
-python3 -m pip install --user "git+https://github.com/timstasevich/blackslides.git"
+py -m pip install "git+https://github.com/timstasevich/blackslides.git"
 ```
 
-If you get an `externally-managed-environment` error (this happens with Homebrew's Python), use pipx instead:
+If Git asks you to sign in to GitHub, a browser window opens. Approve it.
+
+**3. Convert a deck:**
 
 ```
-brew install pipx
-pipx ensurepath
-pipx install "git+https://github.com/timstasevich/blackslides.git"
+py -m blackslides "C:\Users\you\Desktop\talk.pptx"
 ```
 
-Close and reopen Terminal after `pipx ensurepath`.
+This writes `talk_black.pptx` next to the original. To get a file's path, Shift+right-click it in File Explorer, choose **Copy as path**, and paste it into the terminal.
 
-**3. Check it works:**
-
-```
-blackslides --help
-```
-
-If you see `command not found`, use `python3 -m blackslides --help` instead. It does the same thing, and every command below works with `python3 -m blackslides` in place of `blackslides`.
-
-**If the repository is private** and pip asks for a password, use the zip instead. On the GitHub page, click **Code**, then **Download ZIP**, and run:
-
-```
-python3 -m pip install --user ~/Downloads/blackslides-main.zip
-```
+If PowerPoint has `talk_black.pptx` open, close it before re-running, otherwise Windows blocks the save.
 
 **Updating to the latest version:**
 
 ```
-python3 -m pip install --user --upgrade --force-reinstall "git+https://github.com/timstasevich/blackslides.git"
+py -m pip install --upgrade --force-reinstall "git+https://github.com/timstasevich/blackslides.git"
 ```
 
-With pipx, run `pipx reinstall blackslides` instead.
+### macOS / Linux
 
-**Windows:** install Python from python.org (tick "Add python.exe to PATH") and Git from git-scm.com. Then run the same `pip install` command in PowerShell, using `python` in place of `python3`.
+```
+python3 -m pip install --user "git+https://github.com/timstasevich/blackslides.git"
+python3 -m blackslides talk.pptx
+```
+
+If you get an `externally-managed-environment` error, install with pipx instead:
+
+```
+brew install pipx
+pipx install "git+https://github.com/timstasevich/blackslides.git"
+```
+
+### Without Git
+
+On the GitHub page, click **Code**, then **Download ZIP**. Then install from the zip:
+
+```
+py -m pip install C:\Users\you\Downloads\blackslides-main.zip
+```
+
+On Mac or Linux, use `python3 -m pip install ~/Downloads/blackslides-main.zip`.
+
+### Optional extras
 
 LibreOffice is **not** needed. It's only used by the optional `--rasterize-metafiles`.
 
 ## Everyday use
 
 ```
-blackslides talk.pptx                    # every slide -> talk_black.pptx
-blackslides talk.pptx --slides 4,7-9     # only these slides; the rest stay untouched
-blackslides fig2.png fig3.jpg fig4.emf   # just the images -> fig2_black.png, ...
+py -m blackslides talk.pptx                    # every slide -> talk_black.pptx
+py -m blackslides talk.pptx --slides 4,7-9     # only these slides; the rest stay untouched
+py -m blackslides fig2.png fig3.jpg fig4.emf   # just the images -> fig2_black.png, ...
 ```
 
-To get the path of a file without typing it, type `blackslides ` (with a trailing space) and drag the .pptx from Finder onto the Terminal window.
+On Mac or Linux, use `python3 -m blackslides` in place of `py -m blackslides`. The short form `blackslides talk.pptx` also works if Python's Scripts folder is on your PATH.
 
 Your original file is never modified. A new `_black` copy is written next to it, or use `-o newname.pptx` to choose the name.
 
